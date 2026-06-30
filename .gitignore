@@ -1,0 +1,61 @@
+# ===== 通用 =====
+# 系统与 IDE
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# 环境变量（复制 .example 为真实文件后不要提交）
+.env
+.env.*
+!.env.example
+
+# ===== 后端 Python =====
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.eggs/
+build/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+
+# 虚拟环境
+.venv/
+venv/
+env/
+
+# ===== 前端 Node =====
+node_modules/
+dist/
+dist-ssr/
+*.local
+.eslintcache
+.vite/
+coverage/
+
+# 日志
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ===== 项目配置（仅提交 .example，真实文件含密码不提交）=====
+config/config.yaml
+*.local.yaml
+
+# Docker 部署本地环境变量
+docker_deploy/.env
+
+# ===== 数据库文件 =====
+*.db
+*.sqlite
+*.sqlite3

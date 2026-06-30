@@ -1,0 +1,36 @@
+# ========== 系统根配置（非数据库连接类）==========
+system_root:
+  ldap: http://127.0.0.1:8080/api/v1/ldap/login
+  download_dir: download/
+  upload_dir: upload/
+
+# ========== 应用配置 ==========
+app:
+  name: FastAPI Template
+  version: 0.1.0
+  debug: true
+
+# ========== 安全配置 ==========
+security:
+  secret_key: change-me-in-production
+  cors_origins:
+    - "*"
+  cookie_domain: .ops.com
+
+# ========== 外部 API 配置 ==========
+external_api:
+  example_base_url: https://api.example.com
+  example_api_key: your-api-key
+
+# ========== 引导数据库配置 ==========
+# 其他 MySQL/Redis/Mongo 连接信息均存入引导数据库对应的
+# mysql_info / redis_info / mongo_info 表中，通过 API 读取。
+# 复制本文件为 config.yaml 后填写真实地址（config.yaml 已加入 .gitignore，勿提交）
+mysql:
+  system_default_db:
+    db_addr: 127.0.0.1
+    db_port: 3306
+    db_user: root
+    db_password: your_password
+    db_name: fastapi_template
+    app_env: dev

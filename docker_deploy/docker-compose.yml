@@ -1,0 +1,81 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: fastapi-ant-demo-mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_PASSWORD:-CAr8RvRA}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-kefu_attack_system}
+    volumes:
+      - mysql_data:/var/lib/mysql
+    expose:
+      - "3306"
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
+      timeout: 5s
+      retries: 10
+    networks:
+      - ops-net
+
+  redis:
+    image: redis:7-alpine
+    container_name: fastapi-ant-demo-redis
+    restart: always
+    expose:
+      - "6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - ops-net
+
+  mongo:
+    image: mongo:7
+    container_name: fastapi-ant-demo-mongo
+    restart: always
+    expose:
+      - "27017"
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - ops-net
+
+  backend:
+    build: ../backend
+    container_name: fastapi-ant-demo-backend
+    restart: always
+    environment:
+      APP_ENV: prod
+    volumes:
+      - ../config/config.yaml:/app/config.yaml:ro
+    expose:
+      - "8000"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - ops-net
+
+  frontend:
+    build:
+      context: ../frontend
+      args:
+        VITE_API_BASE_URL: /api/v1
+    container_name: fastapi-ant-demo-frontend
+    restart: always
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
+    networks:
+      - ops-net
+
+volumes:
+  mysql_data:
+  redis_data:
+  mongo_data:
+
+networks:
+  ops-net:
+    driver: bridge
