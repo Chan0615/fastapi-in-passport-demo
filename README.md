@@ -257,7 +257,7 @@ mysql:
     db_addr: 10.225.138.121              # 真实 MySQL 服务器 IP
     db_port: 3306
     db_user: root
-    db_password: CAr8RvRA              # ← 改成你的 MySQL 密码
+    db_password: xxx              # ← 改成你的 MySQL 密码
     db_name: kefu_fastapi_ant_demo
 ```
 
