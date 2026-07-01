@@ -56,6 +56,9 @@ case "$ACTION" in
         docker compose up -d --build
         echo ""
         docker compose ps
+        echo ""
+        echo "🧹 清理旧镜像..."
+        docker image prune -f
         ;;
     down)
         echo "🛑 停止服务..."
@@ -68,8 +71,13 @@ case "$ACTION" in
     logs)
         docker compose logs -f
         ;;
+    clean)
+        echo "🧹 清理旧镜像..."
+        docker image prune -f
+        docker builder prune -f
+        ;;
     *)
-        echo "用法: bash deploy.sh [up|down|restart|logs]"
+        echo "用法: bash deploy.sh [up|down|restart|logs|clean]"
         exit 1
         ;;
 esac
