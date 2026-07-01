@@ -9,7 +9,7 @@ import {
 } from '@ant-design/icons';
 import { kefuAttackSystemApi, KefuDdosEventsResponse } from '../../services/kefuAttackSystemApi';
 
-const { Title, Text } = Typography;
+const { Text } = Typography;
 
 const cellRender = (value: unknown) => {
   if (value === null || value === undefined) return <Text type="secondary">-</Text>;
