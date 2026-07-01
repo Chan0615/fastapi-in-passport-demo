@@ -1,0 +1,35 @@
+# ═════════════════════════════════════════════════
+# 宿主机 Nginx 反向代理配置模板
+# 将本文件放到 /etc/nginx/conf.d/ 下
+# 如：/etc/nginx/conf.d/fastapi-ant-demo.conf
+# ═════════════════════════════════════════════════
+
+server {
+    listen 80;
+    server_name fastapi-ant-demo.ops.com;
+
+    # 访问日志
+    access_log /var/log/nginx/fastapi-ant-demo.access.log;
+    error_log  /var/log/nginx/fastapi-ant-demo.error.log;
+
+    # 反向代理到前端容器（Docker 内的 Nginx）
+    location / {
+        proxy_pass http://127.0.0.1:8080;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    # 静态资源直连前端容器，带缓存
+    location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ {
+        proxy_pass http://127.0.0.1:8080;
+        expires 30d;
+        add_header Cache-Control "public, immutable";
+    }
+
+    # gzip 压缩
+    gzip on;
+    gzip_types text/plain text/css application/json application/javascript text/xml application/xml;
+    gzip_min_length 1024;
+}

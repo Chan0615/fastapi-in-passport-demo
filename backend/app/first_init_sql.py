@@ -42,7 +42,11 @@ INSERT INTO menu (name, menu_type, path, icon, permission, parent_id, sort_order
 ('新增菜单', 'button', '', '', 'menu:add', 5, 1, 1),
 ('编辑菜单', 'button', '', '', 'menu:edit', 5, 2, 1),
 ('删除菜单', 'button', '', '', 'menu:delete', 5, 3, 1),
-('操作日志', 'menu', '/admin/logs', 'FileTextOutlined', '', 2, 4, 1)
+('操作日志', 'menu', '/admin/logs', 'FileTextOutlined', '', 2, 4, 1),
+('数据源管理', 'menu', '/admin/db-config', 'DatabaseOutlined', '', 2, 5, 1),
+('新增数据源', 'button', '', '', 'db:add', 6, 1, 1),
+('编辑数据源', 'button', '', '', 'db:edit', 6, 2, 1),
+('删除数据源', 'button', '', '', 'db:delete', 6, 3, 1)
 """
 
 # 角色-菜单关联

@@ -7,6 +7,7 @@ import UserList from './pages/user-management/UserList';
 import RoleList from './pages/role-management/RoleList';
 import MenuList from './pages/menu-management/MenuList';
 import OperationLogList from './pages/operation-log/OperationLogList';
+import DbConfigList from './pages/db-config/DbConfigList';
 import { useAuth } from './contexts/AuthContext';
 
 function AdminRoute({ children }: { children: React.ReactNode }) {
@@ -51,6 +52,10 @@ function App() {
         <Route
           path="/admin/logs"
           element={<AdminRoute><OperationLogList /></AdminRoute>}
+        />
+        <Route
+          path="/admin/db-config"
+          element={<AdminRoute><DbConfigList /></AdminRoute>}
         />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>

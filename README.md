@@ -258,7 +258,7 @@ mysql:
     db_port: 3306
     db_user: root
     db_password: CAr8RvRA              # ← 改成你的 MySQL 密码
-    db_name: kefu_attack_system
+    db_name: kefu_fastapi_ant_demo
 ```
 
 > **注意**：
@@ -349,7 +349,7 @@ mongo:
 需要重新初始化角色和菜单时，清空相关表后重启：
 
 ```sql
-USE kefu_attack_system;
+USE kefu_fastapi_ant_demo;
 
 SET FOREIGN_KEY_CHECKS = 0;
 TRUNCATE TABLE role_menu;
@@ -368,20 +368,20 @@ SET FOREIGN_KEY_CHECKS = 1;
 也可以直接执行 SQL 脚本：
 
 ```bash
-docker exec -i fastapi-ant-demo-mysql mysql -uroot -p'密码' kefu_attack_system < backend/scripts/init_config.sql
+docker exec -i fastapi-ant-demo-mysql mysql -uroot -p'密码' kefu_fastapi_ant_demo < backend/scripts/init_config.sql
 ```
 
 ### 6.4 数据备份
 
 ```bash
 # 手动备份
-docker exec fastapi-ant-demo-mysql mysqldump -uroot -p'密码' kefu_attack_system > backup_$(date +%Y%m%d).sql
+docker exec fastapi-ant-demo-mysql mysqldump -uroot -p'密码' kefu_fastapi_ant_demo > backup_$(date +%Y%m%d).sql
 
 # 恢复
-docker exec -i fastapi-ant-demo-mysql mysql -uroot -p'密码' kefu_attack_system < backup_20260630.sql
+docker exec -i fastapi-ant-demo-mysql mysql -uroot -p'密码' kefu_fastapi_ant_demo < backup_20260630.sql
 
 # 定时备份（crontab -e）
-0 2 * * * docker exec fastapi-ant-demo-mysql mysqldump -uroot -p'密码' kefu_attack_system > /opt/backup/mysql_$(date +\%Y\%m\%d).sql
+0 2 * * * docker exec fastapi-ant-demo-mysql mysqldump -uroot -p'密码' kefu_fastapi_ant_demo > /opt/backup/mysql_$(date +\%Y\%m\%d).sql
 ```
 
 ---
