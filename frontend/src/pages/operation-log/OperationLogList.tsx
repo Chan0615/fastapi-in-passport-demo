@@ -69,54 +69,35 @@ export default function OperationLogList() {
   };
 
   const columns = [
+    { title: '时间', dataIndex: 'created_at', key: 'created_at', width: 155 },
+    { title: '用户', dataIndex: 'username', key: 'username', width: 80, render: (v: string | null) => v || '-' },
     {
-      title: '时间', dataIndex: 'created_at', key: 'created_at', width: 170,
-    },
-    {
-      title: '用户', dataIndex: 'username', key: 'username', width: 120,
-      render: (v: string | null) => v || '-',
-    },
-    {
-      title: '模块', dataIndex: 'module', key: 'module', width: 100,
+      title: '模块', dataIndex: 'module', key: 'module', width: 70,
       render: (v: string) => v ? <Tag>{v}</Tag> : '-',
     },
     {
-      title: '操作', dataIndex: 'action', key: 'action', width: 100,
-      render: (v: string) => {
-        const color = actionColor[v] || 'default';
-        const label = actionLabel[v] || v;
-        return <Tag color={color}>{label}</Tag>;
-      },
+      title: '操作', dataIndex: 'action', key: 'action', width: 70,
+      render: (v: string) => <Tag color={actionColor[v] || 'default'}>{actionLabel[v] || v}</Tag>,
     },
     {
-      title: '方法', dataIndex: 'method', key: 'method', width: 70,
+      title: '方法', dataIndex: 'method', key: 'method', width: 50,
       render: (v: string) => <Tag color="blue">{v}</Tag>,
     },
-    { title: '路径', dataIndex: 'path', key: 'path', ellipsis: true },
+    { title: '路径', dataIndex: 'path', key: 'path', ellipsis: true, width: 180 },
+    { title: 'IP', dataIndex: 'ip', key: 'ip', width: 120, render: (v: string) => v || '-' },
     {
-      title: 'IP', dataIndex: 'ip', key: 'ip', width: 130,
-      render: (v: string) => v || '-',
+      title: '状态', dataIndex: 'status_code', key: 'status_code', width: 50,
+      render: (v: number) => <Tag color={v === 200 ? 'green' : 'red'}>{v}</Tag>,
     },
     {
-      title: '状态', dataIndex: 'status_code', key: 'status_code', width: 70,
-      render: (v: number) => (
-        <Tag color={v === 200 ? 'green' : 'red'}>{v}</Tag>
-      ),
+      title: '耗时', dataIndex: 'cost_ms', key: 'cost_ms', width: 55,
+      render: (v: number) => <Text type="secondary" style={{ fontSize: 12 }}>{v}ms</Text>,
     },
     {
-      title: '耗时', dataIndex: 'cost_ms', key: 'cost_ms', width: 80,
-      render: (v: number) => <Text type="secondary">{v}ms</Text>,
-    },
-    {
-      title: '操作', key: 'action_btn', width: 70,
+      title: '', key: 'action_btn', width: 45,
       render: (_: unknown, record: OperationLogItem) => (
-        <Button
-          size="small"
-          icon={<EyeOutlined />}
-          onClick={() => { setDetailLog(record); setDetailVisible(true); }}
-        >
-          详情
-        </Button>
+        <Button type="link" size="small" icon={<EyeOutlined />}
+          onClick={() => { setDetailLog(record); setDetailVisible(true); }} />
       ),
     },
   ];
@@ -160,7 +141,7 @@ export default function OperationLogList() {
           showTotal: (t) => `共 ${t} 条`,
           onChange: (p, ps) => { setPage(p); setPageSize(ps); },
         }}
-        scroll={{ x: 1200 }}
+        scroll={{ x: 900 }}
       />
 
       <Modal
