@@ -72,6 +72,7 @@ cd "$SCRIPT_DIR"
 case "$ACTION" in
     up)
         pull_code
+        cd "$SCRIPT_DIR"
         echo "🚀 构建并启动服务..."
         docker compose up -d --build
         echo ""
