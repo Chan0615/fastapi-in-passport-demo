@@ -13,6 +13,9 @@ CONFIG_FILE="$PROJECT_DIR/config/config.yaml"
 
 ACTION="${1:-up}"
 
+# 独立项目名，避免与其他 docker-compose 项目冲突
+export COMPOSE_PROJECT_NAME=fastapi-ant-demo
+
 # ── Git 拉取 ──
 pull_code() {
     echo "📦 拉取最新代码..."
