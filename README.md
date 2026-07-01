@@ -10,10 +10,10 @@
 fastapi-ant-demo/
 ├── backend/                         # 后端
 │   ├── app/
-│   │   ├── common/                  # 通用模块（database/deps/ldap_api/redisdb/mongodb）
+│   │   ├── common/                  # 通用模块（database/deps/ldap_api/redisdb/mongodb/log_middleware）
 │   │   ├── core/                    # 安全认证（security.py: JWT + 密码哈希）
 │   │   ├── admin/                   # 系统管理模块（用户/角色/菜单）
-│   │   ├── models/                  # 通用数据模型
+│   │   ├── models/                  # 通用数据模型（db_config/operation_log）
 │   │   ├── schemas/                 # 通用校验模型
 │   │   ├── services/                # 通用业务逻辑
 │   │   ├── api/v1/endpoints/        # API 路由
@@ -39,7 +39,8 @@ fastapi-ant-demo/
 │   └── config.yaml.example
 ├── docker_deploy/                   # 部署相关
 │   ├── docker-compose.yml
-│   └── nginx/ops.conf.example       # 宿主机 Nginx 配置模板
+│   ├── deploy.sh                    # 一键部署脚本
+│   └── nginx/fastapi-ant-demo.conf.example  # 宿主机 Nginx 配置模板
 ├── .codebuddy/                      # AI 开发规范
 │   ├── rules/project-structure.md
 │   └── skills/ops-dev-conventions/  # 项目 Skill（新成员 AI 自动学习）
@@ -195,8 +196,8 @@ systemctl start nginx && systemctl enable nginx
 ### 3.2 配置反向代理
 
 ```bash
-cp docker_deploy/nginx/ops.conf.example /etc/nginx/conf.d/ops.conf
-vim /etc/nginx/conf.d/ops.conf
+cp docker_deploy/nginx/fastapi-ant-demo.conf.example /etc/nginx/conf.d/fastapi-ant-demo.conf
+vim /etc/nginx/conf.d/fastapi-ant-demo.conf
 ```
 
 修改 `server_name` 为实际域名：
@@ -204,7 +205,7 @@ vim /etc/nginx/conf.d/ops.conf
 ```nginx
 server {
     listen 80;
-    server_name ops.your-domain.com;
+    server_name fastapi-ant-demo.ops.com;
 
     location / {
         proxy_pass http://127.0.0.1:8080;
@@ -249,7 +250,7 @@ security:
   secret_key: 生产环境请改成随机字符串
   cors_origins:
     - "*"
-  cookie_domain: .your-domain.com      # 域名根域，用于 SSO
+  cookie_domain: .ops.com    # SSO 域名根域，所有 *.ops.com 系统共享登录态
 
 mysql:
   system_default_db:
@@ -292,10 +293,10 @@ bash deploy.sh logs       # 查看日志
 ```bash
 curl http://127.0.0.1:8000/health     # 后端
 curl http://127.0.0.1:8080            # 前端
-curl http://ops.your-domain.com       # 域名
+curl http://fastapi-ant-demo.ops.com  # 域名
 ```
 
-访问 `http://ops.your-domain.com` 看到登录页即部署成功。
+访问 `http://fastapi-ant-demo.ops.com` 看到登录页即部署成功。
 
 ---
 
@@ -340,7 +341,7 @@ mongo:
 
 种子数据内容：
 - **角色**：guest / admin / super_admin
-- **菜单**：首页 + 系统管理（用户/角色/菜单）+ 按钮权限
+- **菜单**：首页 + 系统管理（用户/角色/菜单/操作日志）+ 按钮权限
 - **角色-菜单关联**：super_admin 全部，admin 仅首页，guest 仅首页
 
 ### 6.2 重置权限数据
@@ -367,20 +368,20 @@ SET FOREIGN_KEY_CHECKS = 1;
 也可以直接执行 SQL 脚本：
 
 ```bash
-docker exec -i ops-mysql mysql -uroot -p'密码' kefu_attack_system < backend/scripts/init_config.sql
+docker exec -i fastapi-ant-demo-mysql mysql -uroot -p'密码' kefu_attack_system < backend/scripts/init_config.sql
 ```
 
 ### 6.4 数据备份
 
 ```bash
 # 手动备份
-docker exec ops-mysql mysqldump -uroot -p'密码' kefu_attack_system > backup_$(date +%Y%m%d).sql
+docker exec fastapi-ant-demo-mysql mysqldump -uroot -p'密码' kefu_attack_system > backup_$(date +%Y%m%d).sql
 
 # 恢复
-docker exec -i ops-mysql mysql -uroot -p'密码' kefu_attack_system < backup_20260630.sql
+docker exec -i fastapi-ant-demo-mysql mysql -uroot -p'密码' kefu_attack_system < backup_20260630.sql
 
 # 定时备份（crontab -e）
-0 2 * * * docker exec ops-mysql mysqldump -uroot -p'密码' kefu_attack_system > /opt/backup/mysql_$(date +\%Y\%m\%d).sql
+0 2 * * * docker exec fastapi-ant-demo-mysql mysqldump -uroot -p'密码' kefu_attack_system > /opt/backup/mysql_$(date +\%Y\%m\%d).sql
 ```
 
 ---
@@ -427,20 +428,20 @@ docker compose logs frontend
 ```bash
 # 检查 config.yaml 中 db_addr 是否为 mysql（Docker 服务名）
 docker compose ps mysql
-docker exec -it ops-backend python -c "from app.config import bootstrap_config; print(bootstrap_config.database_url)"
+docker exec -it fastapi-ant-demo-backend python -c "from app.config import bootstrap_config; print(bootstrap_config.database_url)"
 ```
 
 ### 前端白屏
 
 ```bash
 docker compose logs frontend
-docker exec ops-frontend nginx -t
+docker exec fastapi-ant-demo-frontend nginx -t
 ```
 
 ### 域名访问不了
 
 ```bash
-nslookup ops.your-domain.com       # DNS 解析
+nslookup fastapi-ant-demo.ops.com       # DNS 解析
 nginx -t                             # Nginx 配置
 systemctl status nginx
 firewall-cmd --permanent --add-port=80/tcp && firewall-cmd --reload
@@ -450,7 +451,7 @@ firewall-cmd --permanent --add-port=80/tcp && firewall-cmd --reload
 
 ```bash
 # 检查 config.yaml 中 ldap 地址
-docker exec -it ops-backend python -c "
+docker exec -it fastapi-ant-demo-backend python -c "
 import httpx
 resp = httpx.post('http://ldap.api.com:9099/login-new', json={'username':'test','password':'test','ouname':'dobest'})
 print(resp.status_code, resp.json())
@@ -464,23 +465,23 @@ print(resp.status_code, resp.json())
 ```bash
 # 申请证书
 yum install -y certbot python3-certbot-nginx
-certbot --nginx -d ops.your-domain.com
+certbot --nginx -d fastapi-ant-demo.ops.com
 ```
 
-或手动配置 `/etc/nginx/conf.d/ops.conf`：
+或手动配置 `/etc/nginx/conf.d/fastapi-ant-demo.conf`：
 
 ```nginx
 server {
     listen 80;
-    server_name ops.your-domain.com;
+    server_name fastapi-ant-demo.ops.com;
     return 301 https://$host$request_uri;
 }
 
 server {
     listen 443 ssl;
-    server_name ops.your-domain.com;
-    ssl_certificate /etc/letsencrypt/live/ops.your-domain.com/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/ops.your-domain.com/privkey.pem;
+    server_name fastapi-ant-demo.ops.com;
+    ssl_certificate /etc/letsencrypt/live/fastapi-ant-demo.ops.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/fastapi-ant-demo.ops.com/privkey.pem;
 
     location / {
         proxy_pass http://127.0.0.1:8080;

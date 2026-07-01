@@ -15,7 +15,7 @@ security:
   secret_key: change-me-in-production
   cors_origins:
     - "*"
-  cookie_domain: .ops.com
+  cookie_domain: .ops.com    # SSO 域名根域，如 .ops.com（所有 *.ops.com 系统共享登录态）
 
 # ========== 外部 API 配置 ==========
 external_api:
