@@ -18,8 +18,8 @@ pull_code() {
     echo "📦 拉取最新代码..."
     cd "$PROJECT_DIR"
 
-    # 首次部署：clone
     if [ ! -d ".git" ]; then
+        echo "🆕 首次部署，克隆代码..."
         git clone "$GIT_REPO" "$PROJECT_DIR" 2>/dev/null || true
         if [ ! -d ".git" ]; then
             git clone "$GIT_REPO" "$PROJECT_DIR"
@@ -28,7 +28,6 @@ pull_code() {
         return
     fi
 
-    # 后续更新：pull
     git pull origin main
     echo "✅ 代码已更新"
 }
@@ -45,26 +44,6 @@ if [ ! -f "$CONFIG_FILE" ]; then
         exit 1
     fi
 fi
-
-# ── 从 config.yaml 提取 MySQL 配置 ──
-echo "📖 读取 $CONFIG_FILE ..."
-
-MYSQL_PASSWORD=$(grep 'db_password:' "$CONFIG_FILE" | head -1 | sed 's/.*db_password:\s*//; s/#.*//; s/^[[:space:]]*//; s/[[:space:]]*$//')
-MYSQL_DATABASE=$(grep 'db_name:' "$CONFIG_FILE" | head -1 | sed 's/.*db_name:\s*//; s/#.*//; s/^[[:space:]]*//; s/[[:space:]]*$//')
-
-if [ -z "$MYSQL_PASSWORD" ] || [ -z "$MYSQL_DATABASE" ]; then
-    echo "❌ 无法从 config.yaml 提取 MySQL 配置，请检查文件格式"
-    exit 1
-fi
-
-# ── 生成 .env ──
-ENV_FILE="$SCRIPT_DIR/.env"
-cat > "$ENV_FILE" <<EOF
-# 自动生成，请勿手动编辑
-MYSQL_PASSWORD=$MYSQL_PASSWORD
-MYSQL_DATABASE=$MYSQL_DATABASE
-EOF
-echo "✅ 已生成 .env (MYSQL_DATABASE=$MYSQL_DATABASE)"
 
 # ── 执行 ──
 cd "$SCRIPT_DIR"

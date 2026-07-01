@@ -28,9 +28,9 @@ external_api:
 # 复制本文件为 config.yaml 后填写真实地址（config.yaml 已加入 .gitignore，勿提交）
 mysql:
   system_default_db:
-    db_addr: 127.0.0.1
+    db_addr: 10.225.138.121     # 真实 MySQL 服务器 IP
     db_port: 3306
     db_user: root
     db_password: your_password
-    db_name: fastapi_template
+    db_name: kefu_fastapi_ant_demo
     app_env: dev

@@ -58,7 +58,7 @@ fastapi-ant-demo/
 | 后端 | Python 3.12、FastAPI、SQLAlchemy 2.0、Pydantic、PyMySQL、python-jose |
 | 前端 | React 18、Ant Design 5、Vite、TypeScript、Axios |
 | 部署 | Docker、Docker Compose、Nginx |
-| 数据库 | MySQL 8.0、Redis 7、MongoDB 7 |
+| 数据库 | MySQL 8.0、Redis 7、MongoDB 7（外部服务，非容器内） |
 
 ### 认证流程
 
@@ -180,7 +180,7 @@ systemctl daemon-reload && systemctl restart docker
 
 ## 三、Nginx 安装（宿主机）
 
-宿主机 Nginx 将 80 端口反向代理到 Docker 前端容器（8080）。
+宿主机 Nginx 将 80 端口反向代理到 Docker 前端容器（8083）。
 
 ### 3.1 安装
 
@@ -208,7 +208,7 @@ server {
     server_name fastapi-ant-demo.ops.com;
 
     location / {
-        proxy_pass http://127.0.0.1:8080;
+        proxy_pass http://127.0.0.1:8083;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -254,7 +254,7 @@ security:
 
 mysql:
   system_default_db:
-    db_addr: mysql                      # Docker 内服务名，不要改
+    db_addr: 10.225.138.121              # 真实 MySQL 服务器 IP
     db_port: 3306
     db_user: root
     db_password: CAr8RvRA              # ← 改成你的 MySQL 密码
@@ -262,8 +262,8 @@ mysql:
 ```
 
 > **注意**：
-> - `db_addr` 用 Docker 服务名 `mysql`，不是 IP
-> - `db_password` 和 `db_name` 会自动同步到 MySQL 容器（通过 deploy.sh）
+> - `db_addr` 填写真实的 MySQL 服务器 IP
+> - `db_password` 和 `db_name` 与实际 MySQL 保持一致
 > - `cookie_domain` 改成你的实际域名根域
 
 ### 4.2 构建启动
@@ -271,28 +271,26 @@ mysql:
 ```bash
 cd docker_deploy
 
-# 一键部署（自动从 config.yaml 提取 MySQL 密码，生成 .env，再启动）
+# 部署（自动 git pull + 构建启动）
 bash deploy.sh up
 
 # 其他命令
 bash deploy.sh down       # 停止
 bash deploy.sh restart    # 重启
-bash deploy.sh build      # 重新构建
 bash deploy.sh logs       # 查看日志
 ```
 
 `deploy.sh` 会自动：
-1. 从 `config/config.yaml` 读取 MySQL 密码和数据库名
-2. 生成 `.env` 文件供 docker-compose 使用
-3. 启动所有容器
+1. `git pull origin main` 拉取最新代码
+2. `docker compose up -d --build` 构建并启动容器
 
-> 修改了 `config.yaml` 中的 MySQL 密码后，重新执行 `bash deploy.sh up` 即可同步。
+> 数据库使用外部 MySQL/Redis/MongoDB，无需在 Docker 中启动。
 
 ### 4.3 验证
 
 ```bash
 curl http://127.0.0.1:8000/health     # 后端
-curl http://127.0.0.1:8080            # 前端
+curl http://127.0.0.1:8083            # 前端
 curl http://fastapi-ant-demo.ops.com  # 域名
 ```
 
@@ -304,31 +302,29 @@ curl http://fastapi-ant-demo.ops.com  # 域名
 
 | 服务 | 容器端口 | 宿主机映射 | 说明 |
 |------|---------|-----------|------|
-| 前端 Nginx | 80 | 8080 | 静态文件 + API 代理 |
-| 后端 FastAPI | 8000 | 不映射 | 仅容器内网 |
-| MySQL | 3306 | 3306（可关闭） | 数据库 |
-| Redis | 6379 | 6379（可关闭） | 缓存 |
-| MongoDB | 27017 | 27017（可关闭） | 文档库 |
+| 前端 Nginx | 80 | 8083 | 静态文件 + API 代理 |
+| 后端 FastAPI | 8000 | 8000 | API 服务 |
+| MySQL | - | - | 外部服务，通过 config.yaml 连接 |
+| Redis | - | - | 外部服务 |
+| MongoDB | - | - | 外部服务 |
 
 ### 访问链路
 
 ```
-用户浏览器 → 域名:80 → 宿主机Nginx → Docker前端:8080 → 静态文件
+用户浏览器 → 域名:80 → 宿主机Nginx → Docker前端:8083 → 静态文件
                                                   ↘ /api/ → Docker后端:8000
 ```
 
-### 生产环境关闭数据库外部端口
-
-```yaml
-mysql:
-  expose: ["3306"]      # 替代 ports
-redis:
-  expose: ["6379"]
-mongo:
-  expose: ["27017"]
-```
-
 ---
+
+### 联合部署
+```bash
+# 确保已安装 docker-compose
+yum install -y docker-compose-plugin
+
+# 启动
+cd docker_deploy && bash deploy.sh up
+```
 
 ## 六、数据管理
 
@@ -521,7 +517,7 @@ server {
     ssl_certificate_key /etc/letsencrypt/live/fastapi-ant-demo.ops.com/privkey.pem;
 
     location / {
-        proxy_pass http://127.0.0.1:8080;
+        proxy_pass http://127.0.0.1:8083;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
