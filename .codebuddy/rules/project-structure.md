@@ -61,6 +61,33 @@ src/pages/user-management/
 - 文件名：snake_case，能体现功能（`user_service.py` 而非 `service.py`）。
 - 路由前缀与 tag 与功能对应，统一在 `api.py` 中注册，如 `api_router.include_router(users.router, prefix="/users", tags=["users"])`。
 
+### 5. 数据库查询使用 raw SQL（不用 ORM）
+
+- **查询一律使用 `db.execute(text("SELECT ..."))` raw SQL**，不使用 SQLAlchemy ORM 的 `db.query(Model).filter()` 方式。
+- SQLAlchemy Model 仅用于 `Base.metadata.create_all()` 定义表结构，不用于查询。
+- 参数必须用参数化查询（`:param`）防止注入，**禁止字符串拼接 SQL**。
+
+示例：
+
+```python
+from sqlalchemy import text
+
+# 查询
+db.execute(text("SELECT * FROM `order` WHERE id = :id"), {"id": pk}).fetchone()
+
+# 插入
+db.execute(text("INSERT INTO `order` (title, status) VALUES (:title, :status)"), data)
+db.commit()
+
+# 更新
+db.execute(text("UPDATE `order` SET status = :status WHERE id = :id"), {"id": pk, "status": "done"})
+db.commit()
+
+# 删除
+db.execute(text("DELETE FROM `order` WHERE id = :id"), {"id": pk})
+db.commit()
+```
+
 ---
 
 ## 三、通用约定

@@ -6,6 +6,7 @@
 - [新增功能模块](#新增功能模块)
 - [路由注册](#路由注册)
 - [权限体系](#权限体系)
+- [数据库规范](#数据库规范)
 - [操作日志](#操作日志)
 - [配置管理](#配置管理)
 - [常见问题](#常见问题)
@@ -252,6 +253,79 @@ import Auth from '../components/Auth';
 | `role:add` / `role:edit` / `role:delete` | 角色管理 |
 | `menu:add` / `menu:edit` / `menu:delete` | 菜单管理 |
 | `db:add` / `db:edit` / `db:delete` | 数据源管理 |
+
+---
+
+## 数据库规范
+
+### 查询使用 raw SQL
+
+项目统一使用 `text()` 执行 raw SQL，不使用 ORM 查询（`db.query()`）。
+
+```python
+from sqlalchemy import text
+
+def get_list(db: Session):
+    return db.execute(text("SELECT * FROM `order` ORDER BY id DESC")).fetchall()
+
+def get_by_id(db: Session, pk: int):
+    result = db.execute(text("SELECT * FROM `order` WHERE id = :id"), {"id": pk}).fetchone()
+    return dict(result._mapping) if result else None
+
+def create(db: Session, data: dict):
+    db.execute(text(
+        "INSERT INTO `order` (title, status) VALUES (:title, :status)"
+    ), data)
+    db.commit()
+    return db.execute(text("SELECT * FROM `order` WHERE id = LAST_INSERT_ID()")).fetchone()
+
+def update(db: Session, pk: int, data: dict):
+    sets = ", ".join(f"{k} = :{k}" for k in data)
+    data["id"] = pk
+    db.execute(text(f"UPDATE `order` SET {sets} WHERE id = :id"), data)
+    db.commit()
+    return get_by_id(db, pk)
+
+def delete(db: Session, pk: int) -> bool:
+    result = db.execute(text("DELETE FROM `order` WHERE id = :id"), {"id": pk})
+    db.commit()
+    return result.rowcount > 0
+```
+
+> **注意**：使用参数化查询（`:param`）防止 SQL 注入，不要拼接字符串。
+
+### 多表关联查询
+
+```python
+# 角色 + 用户数量统计
+db.execute(text("""
+    SELECT r.*, COUNT(ur.user_id) as user_count
+    FROM role r
+    LEFT JOIN user_role ur ON r.id = ur.role_id
+    GROUP BY r.id
+""")).fetchall()
+
+# 用户 + 角色列表
+db.execute(text("""
+    SELECT u.*, GROUP_CONCAT(r.name) as role_names
+    FROM user u
+    LEFT JOIN user_role ur ON u.id = ur.user_id
+    LEFT JOIN role r ON ur.role_id = r.id
+    GROUP BY u.id
+""")).fetchall()
+```
+
+### 模型仅用于建表
+
+SQLAlchemy Model 只用来定义表结构（`Base.metadata.create_all()` 自动建表），不使用 ORM 查询功能。
+
+```python
+class Order(Base):
+    __tablename__ = "order"
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    title = Column(String(128), nullable=False)
+    ...
+```
 
 ---
 
