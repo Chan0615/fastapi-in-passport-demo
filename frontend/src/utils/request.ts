@@ -1,17 +1,17 @@
 import axios from 'axios';
 import { message } from 'antd';
 
-const request = axios.create({
+const axiosInstance = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL || '/api/v1',
   timeout: 15000,
-  withCredentials: true,  // 跨域携带 Cookie，支持 *.ops.com SSO
+  withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
 // 请求拦截器：自动注入 JWT 令牌
-request.interceptors.request.use(
+axiosInstance.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('access_token');
     if (token) {
@@ -22,8 +22,8 @@ request.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// 响应拦截器：统一错误处理
-request.interceptors.response.use(
+// 响应拦截器：剥离 AxiosResponse，只返回 data；统一错误处理
+axiosInstance.interceptors.response.use(
   (response) => response.data,
   (error) => {
     if (error.response?.status === 401) {
@@ -40,5 +40,17 @@ request.interceptors.response.use(
     return Promise.reject(new Error(msg));
   }
 );
+
+// 导出类型正确的请求方法（返回 T 而非 AxiosResponse<T>）
+const request = {
+  get: <T = any>(url: string, config?: any): Promise<T> =>
+    axiosInstance.get(url, config),
+  post: <T = any>(url: string, data?: any, config?: any): Promise<T> =>
+    axiosInstance.post(url, data, config),
+  put: <T = any>(url: string, data?: any, config?: any): Promise<T> =>
+    axiosInstance.put(url, data, config),
+  delete: <T = any>(url: string, config?: any): Promise<T> =>
+    axiosInstance.delete(url, config),
+};
 
 export default request;

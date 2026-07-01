@@ -1,23 +1,52 @@
 #!/bin/bash
 # ═════════════════════════════════════════════════
-# 部署启动脚本
-# 从 config/config.yaml 提取 MySQL 配置，生成 .env，再启动 docker-compose
-# 用法：bash deploy.sh [up|down|restart|logs|build]
+# 部署启动脚本（自动拉取代码 + 部署）
+# 用法：bash deploy.sh [up|down|restart|logs]
 # ═════════════════════════════════════════════════
 set -e
+
+GIT_REPO="http://gitlab.ops.com/chenan02/fastapi-ant-demo.git"
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
 CONFIG_FILE="$PROJECT_DIR/config/config.yaml"
 
+ACTION="${1:-up}"
+
+# ── Git 拉取 ──
+pull_code() {
+    echo "📦 拉取最新代码..."
+    cd "$PROJECT_DIR"
+
+    # 首次部署：clone
+    if [ ! -d ".git" ]; then
+        git clone "$GIT_REPO" "$PROJECT_DIR" 2>/dev/null || true
+        if [ ! -d ".git" ]; then
+            git clone "$GIT_REPO" "$PROJECT_DIR"
+        fi
+        echo "✅ 代码已克隆"
+        return
+    fi
+
+    # 后续更新：pull
+    git pull origin main
+    echo "✅ 代码已更新"
+}
+
 # ── 检查 config.yaml ──
 if [ ! -f "$CONFIG_FILE" ]; then
-    echo "❌ 配置文件不存在: $CONFIG_FILE"
-    echo "   请先复制: cp config/config.yaml.example config/config.yaml"
-    exit 1
+    if [ -f "$PROJECT_DIR/config/config.yaml.example" ]; then
+        echo "📋 首次部署，创建 config.yaml ..."
+        cp "$PROJECT_DIR/config/config.yaml.example" "$CONFIG_FILE"
+        echo "⚠️  请编辑 $CONFIG_FILE 填入真实配置后重新运行"
+        exit 1
+    else
+        echo "❌ 配置文件不存在: $CONFIG_FILE"
+        exit 1
+    fi
 fi
 
-# ── 从 config.yaml 提取 MySQL 配置（纯 shell，不依赖 python） ──
+# ── 从 config.yaml 提取 MySQL 配置 ──
 echo "📖 读取 $CONFIG_FILE ..."
 
 MYSQL_PASSWORD=$(grep 'db_password:' "$CONFIG_FILE" | head -1 | sed 's/.*db_password:\s*//; s/#.*//; s/^[[:space:]]*//; s/[[:space:]]*$//')
@@ -31,19 +60,19 @@ fi
 # ── 生成 .env ──
 ENV_FILE="$SCRIPT_DIR/.env"
 cat > "$ENV_FILE" <<EOF
-# 自动生成，请勿手动编辑，修改 config/config.yaml 后重新运行 deploy.sh
+# 自动生成，请勿手动编辑
 MYSQL_PASSWORD=$MYSQL_PASSWORD
 MYSQL_DATABASE=$MYSQL_DATABASE
 EOF
 echo "✅ 已生成 .env (MYSQL_DATABASE=$MYSQL_DATABASE)"
 
-# ── 执行 docker-compose 命令 ──
-ACTION="${1:-up}"
+# ── 执行 ──
 cd "$SCRIPT_DIR"
 
 case "$ACTION" in
     up)
-        echo "🚀 启动服务..."
+        pull_code
+        echo "🚀 构建并启动服务..."
         docker compose up -d --build
         echo ""
         docker compose ps
@@ -56,15 +85,11 @@ case "$ACTION" in
         echo "🔄 重启服务..."
         docker compose restart
         ;;
-    build)
-        echo "🔨 重新构建..."
-        docker compose up -d --build
-        ;;
     logs)
         docker compose logs -f
         ;;
     *)
-        echo "用法: bash deploy.sh [up|down|restart|build|logs]"
+        echo "用法: bash deploy.sh [up|down|restart|logs]"
         exit 1
         ;;
 esac

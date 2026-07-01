@@ -1,0 +1,38 @@
+# Python
+__pycache__
+*.pyc
+*.pyo
+.venv
+venv
+env
+*.egg-info
+dist
+build
+
+# Git
+.git
+.gitignore
+
+# IDE
+.idea
+.vscode
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Tests
+tests
+test_*
+*_test.py
+
+# Logs
+logs
+*.log
+
+# Docker
+Dockerfile
+.dockerignore
+docker-compose*

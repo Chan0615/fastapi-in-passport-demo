@@ -401,15 +401,14 @@ docker compose down -v                  # 清理数据卷（谨慎！）
 
 ### 更新部署
 
+只需运行一键脚本，自动拉取代码 + 重新构建：
+
 ```bash
-cd /opt/fastapi-ant-demo
-git pull origin main
-cd docker_deploy
-docker compose up -d --build            # 全部重建
-# 或单独重建
-docker compose up -d --build backend
-docker compose up -d --build frontend
+cd /opt/fastapi-ant-demo/docker_deploy
+bash deploy.sh up
 ```
+
+脚本自动完成：`git pull origin main` → 生成 `.env` → `docker compose up -d --build`
 
 ---
 
@@ -460,7 +459,45 @@ print(resp.status_code, resp.json())
 
 ---
 
-## 九、HTTPS 配置（可选）
+## 九、Jenkins CI/CD 配置
+
+将本脚本加入 Jenkins Pipeline，推送代码后自动部署。
+
+### Pipeline 脚本
+
+```groovy
+pipeline {
+    agent any
+
+    stages {
+        stage('Deploy') {
+            steps {
+                sh '''
+                    cd /opt/fastapi-ant-demo
+                    bash docker_deploy/deploy.sh up
+                '''
+            }
+        }
+    }
+}
+```
+
+### Freestyle Job
+
+1. 源码管理 → Git → `http://gitlab.ops.com/chenan02/fastapi-ant-demo.git`
+2. 构建触发器 → 勾选 `Build when a change is pushed to GitLab`
+3. 构建 → 执行 Shell：
+
+```bash
+cd ${WORKSPACE}
+bash docker_deploy/deploy.sh up
+```
+
+> 脚本内置了 `git pull`，即使不用 Jenkins 拉代码，也能自动更新。
+
+---
+
+## 十、HTTPS 配置（可选）
 
 ```bash
 # 申请证书
@@ -499,7 +536,7 @@ nginx -t && nginx -s reload
 
 ---
 
-## 十、新成员接入
+## 十一、新成员接入
 
 项目内置 AI 开发规范（`.codebuddy/skills/ops-dev-conventions/`），新成员使用 CodeBuddy 打开本项目后，AI 会自动学习以下约定：
 

@@ -138,7 +138,7 @@ export default function DbConfigList() {
     { title: '地址', dataIndex: 'db_addr' },
     { title: '端口', dataIndex: 'db_port', width: 80 },
     { title: '用户名', dataIndex: 'db_user', width: 100 },
-    { title: '密码', dataIndex: 'db_pass', width: 100, render: (v: string) => '••••••' },
+    { title: '密码', dataIndex: 'db_pass', width: 100, render: () => '••••••' },
     { title: '数据库', dataIndex: 'db_name', width: 150 },
     {
       title: '操作', width: 150,
@@ -240,7 +240,7 @@ export default function DbConfigList() {
         </Auth>
       }
     >
-      <Tabs activeKey={activeTab} onChange={setActiveTab} items={tabItems} />
+      <Tabs activeKey={activeTab} onChange={(key) => setActiveTab(key as TabKey)} items={tabItems} />
 
       <Modal
         title={`${activeTab === 'mysql' ? 'MySQL' : activeTab === 'redis' ? 'Redis' : 'MongoDB'} - ${editing ? '编辑' : '新增'}`}

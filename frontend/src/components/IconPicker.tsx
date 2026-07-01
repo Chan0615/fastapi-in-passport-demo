@@ -42,14 +42,11 @@ const IconPicker = ({ value, onChange }: IconPickerProps) => {
     name.toLowerCase().includes(keyword.toLowerCase())
   );
 
-  const renderIcon = (name: string) => {
-    const IconComp = (Icons as Record<string, React.ComponentType<{ style?: React.CSSProperties }>>)[name];
-    return IconComp ? <IconComp /> : null;
+  const getIconComp = (name: string) => {
+    return (Icons as unknown as Record<string, React.ComponentType<{ style?: React.CSSProperties }>>)[name];
   };
 
-  const CurrentIcon = value
-    ? (Icons as Record<string, React.ComponentType<{ style?: React.CSSProperties }>>)[value]
-    : null;
+  const CurrentIcon = value ? getIconComp(value) : null;
 
   const content = (
     <div style={{ width: 320 }}>
@@ -75,7 +72,7 @@ const IconPicker = ({ value, onChange }: IconPickerProps) => {
           </div>
         ) : (
           iconNames.map((name) => {
-            const IconComp = (Icons as Record<string, React.ComponentType<{ style?: React.CSSProperties }>>)[name];
+            const IconComp = (Icons as unknown as Record<string, React.ComponentType<{ style?: React.CSSProperties }>>)[name];
             return (
               <div
                 key={name}

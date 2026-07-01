@@ -8,7 +8,7 @@ import { menuApi, MenuInfo } from '../../services/adminApi';
 
 const renderIcon = (iconName: string) => {
   if (!iconName) return '-';
-  const IconComp = (Icons as Record<string, React.ComponentType>)[iconName];
+  const IconComp = (Icons as unknown as Record<string, React.ComponentType>)[iconName];
   return IconComp ? <IconComp /> : iconName;
 };
 

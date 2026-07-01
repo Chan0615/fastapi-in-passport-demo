@@ -27,7 +27,7 @@ const { Text } = Typography;
 // 图标名 → 组件
 const renderIcon = (iconName: string) => {
   if (!iconName) return null;
-  const IconComp = (Icons as Record<string, React.ComponentType>)[iconName];
+  const IconComp = (Icons as unknown as Record<string, React.ComponentType>)[iconName];
   return IconComp ? <IconComp /> : null;
 };
 
