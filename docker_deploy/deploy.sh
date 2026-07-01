@@ -17,22 +17,16 @@ if [ ! -f "$CONFIG_FILE" ]; then
     exit 1
 fi
 
-# ── 从 config.yaml 提取 MySQL 配置 ──
+# ── 从 config.yaml 提取 MySQL 配置（纯 shell，不依赖 python） ──
 echo "📖 读取 $CONFIG_FILE ..."
 
-MYSQL_PASSWORD=$(python3 -c "
-import yaml
-with open('$CONFIG_FILE') as f:
-    cfg = yaml.safe_load(f)
-print(cfg['mysql']['system_default_db']['db_password'])
-")
+MYSQL_PASSWORD=$(grep 'db_password:' "$CONFIG_FILE" | head -1 | sed 's/.*db_password:\s*//; s/#.*//; s/^[[:space:]]*//; s/[[:space:]]*$//')
+MYSQL_DATABASE=$(grep 'db_name:' "$CONFIG_FILE" | head -1 | sed 's/.*db_name:\s*//; s/#.*//; s/^[[:space:]]*//; s/[[:space:]]*$//')
 
-MYSQL_DATABASE=$(python3 -c "
-import yaml
-with open('$CONFIG_FILE') as f:
-    cfg = yaml.safe_load(f)
-print(cfg['mysql']['system_default_db']['db_name'])
-")
+if [ -z "$MYSQL_PASSWORD" ] || [ -z "$MYSQL_DATABASE" ]; then
+    echo "❌ 无法从 config.yaml 提取 MySQL 配置，请检查文件格式"
+    exit 1
+fi
 
 # ── 生成 .env ──
 ENV_FILE="$SCRIPT_DIR/.env"
