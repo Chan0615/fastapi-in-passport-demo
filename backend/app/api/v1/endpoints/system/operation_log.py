@@ -1,25 +1,27 @@
-"""操作日志查询接口。"""
+﻿"""操作日志查询接口。"""
+from __future__ import annotations
+
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
+from app.admin.models import User
 from app.common.database import get_db
 from app.common.deps import get_current_user
-from app.admin.models import User
 from app.models.operation_log import OperationLog
 
-router = APIRouter(prefix="/operation-logs", tags=["操作日志"])
+router = APIRouter(prefix="/operation-logs", tags=["operation-log"])
 
 
 @router.get("/")
 def list_logs(
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
-    module: str = Query("", description="按模块筛选"),
-    username: str = Query("", description="按用户名筛选"),
+    module: str = Query(""),
+    username: str = Query(""),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    """分页查询操作日志。"""
+    _ = current_user
     query = db.query(OperationLog)
     if module:
         query = query.filter(OperationLog.module == module)
@@ -27,12 +29,7 @@ def list_logs(
         query = query.filter(OperationLog.username.like(f"%{username}%"))
 
     total = query.count()
-    items = (
-        query.order_by(OperationLog.id.desc())
-        .offset((page - 1) * page_size)
-        .limit(page_size)
-        .all()
-    )
+    items = query.order_by(OperationLog.id.desc()).offset((page - 1) * page_size).limit(page_size).all()
 
     return {
         "total": total,

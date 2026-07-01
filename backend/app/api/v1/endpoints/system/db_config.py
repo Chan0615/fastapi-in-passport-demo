@@ -1,15 +1,15 @@
-"""数据库连接信息管理接口：MySQL / Redis / MongoDB 完整 CRUD。"""
+﻿"""数据源配置接口。"""
+from __future__ import annotations
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.common.database import get_db
 from app.schemas import db_config as schemas
-from app.services import db_config_service as service
+from app.services.system import db_config_service as service
 
-router = APIRouter(prefix="/db-config")
+router = APIRouter(prefix="/db-config", tags=["db-config"])
 
-
-# ═══════════════ MySQL ═══════════════
 
 @router.get("/mysql", response_model=list[schemas.MysqlInfoOut])
 def list_mysql(db: Session = Depends(get_db)):
@@ -52,8 +52,6 @@ def delete_mysql(pk: int, db: Session = Depends(get_db)):
     return {"msg": "已删除"}
 
 
-# ═══════════════ Redis ═══════════════
-
 @router.get("/redis", response_model=list[schemas.RedisInfoOut])
 def list_redis(db: Session = Depends(get_db)):
     return service.get_redis_list(db)
@@ -94,8 +92,6 @@ def delete_redis(pk: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Redis 连接不存在")
     return {"msg": "已删除"}
 
-
-# ═══════════════ MongoDB ═══════════════
 
 @router.get("/mongo", response_model=list[schemas.MongoInfoOut])
 def list_mongo(db: Session = Depends(get_db)):

@@ -49,7 +49,7 @@ export default function LoginPage() {
         width: '100vw',
         display: 'flex',
         overflow: 'hidden',
-        background: 'linear-gradient(105deg, #0c3d7a 0%, #1677ff 40%, #4096ff 55%, #e6f4ff 70%, #ffffff 100%)',
+        background: 'linear-gradient(105deg, #1c1c1c 0%, #2d2d2d 35%, #8c4513 65%, #fff7e6 80%, #ffffff 100%)',
       }}
     >
       {/* ── 左侧 2/3：系统介绍 ── */}
@@ -85,11 +85,21 @@ export default function LoginPage() {
             width: 500,
             height: 500,
             borderRadius: '50%',
-            background: 'radial-gradient(circle, rgba(64,150,255,0.15) 0%, transparent 70%)',
+            background: 'radial-gradient(circle, rgba(250,140,22,0.2) 0%, transparent 70%)',
             top: -180,
             right: -120,
           }}
         />
+
+        {/* 装饰线条 */}
+        <svg
+          style={{ position: 'absolute', top: 0, right: 0, width: '50%', height: '100%', opacity: 0.05 }}
+          viewBox="0 0 400 600"
+        >
+          <path d="M0,100 Q200,50 400,150 L400,0 L0,0 Z" fill="white" />
+          <path d="M0,250 Q200,200 400,300 L400,200 L0,200 Z" fill="white" />
+          <path d="M0,400 Q200,350 400,450 L400,400 L0,400 Z" fill="white" />
+        </svg>
 
         {/* 内容 */}
         <div style={{ position: 'relative', zIndex: 1, maxWidth: 480, width: '100%', textAlign: 'center', margin: '0 auto' }}>
@@ -100,11 +110,11 @@ export default function LoginPage() {
                 width: 52,
                 height: 52,
                 borderRadius: 14,
-                background: 'rgba(255,255,255,0.2)',
+                background: 'linear-gradient(135deg, #fa8c16 0%, #ffa940 100%)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                border: '1px solid rgba(255,255,255,0.25)',
+                boxShadow: '0 4px 16px rgba(250,140,22,0.4)',
               }}
             >
               <SafetyOutlined style={{ fontSize: 26, color: '#fff' }} />
@@ -113,7 +123,7 @@ export default function LoginPage() {
               <div style={{ color: '#fff', fontSize: 22, fontWeight: 700, lineHeight: 1.2 }}>
                 运维管理系统
               </div>
-              <div style={{ color: 'rgba(255,255,255,0.55)', fontSize: 12, marginTop: 2 }}>
+              <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12, marginTop: 2 }}>
                 Ops Management Platform
               </div>
             </div>
@@ -124,7 +134,7 @@ export default function LoginPage() {
             <Title style={{ color: '#fff', margin: '0 0 10px', fontSize: 26, lineHeight: 1.35 }}>
               集中管控基础设施，让运维更简单
             </Title>
-            <Text style={{ color: 'rgba(255,255,255,0.65)', fontSize: 13 }}>
+            <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 13 }}>
               统一认证 · 数据源管理 · 权限控制 · 操作审计
             </Text>
           </div>
@@ -141,21 +151,21 @@ export default function LoginPage() {
                   gap: 4,
                   padding: '12px 8px',
                   borderRadius: 8,
-                  background: 'rgba(255,255,255,0.08)',
-                  border: '1px solid rgba(255,255,255,0.1)',
+                  background: 'rgba(250,140,22,0.1)',
+                  border: '1px solid rgba(250,140,22,0.2)',
                   textAlign: 'center',
                 }}
               >
-                <div style={{ color: '#91caff', fontSize: 20 }}>{f.icon}</div>
+                <div style={{ color: '#ffa940', fontSize: 20 }}>{f.icon}</div>
                 <div style={{ color: '#fff', fontSize: 12, fontWeight: 600 }}>{f.title}</div>
-                <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: 10 }}>{f.desc}</div>
+                <div style={{ color: 'rgba(255,255,255,0.45)', fontSize: 10 }}>{f.desc}</div>
               </div>
             ))}
           </div>
         </div>
 
         {/* 版权 */}
-        <div style={{ position: 'absolute', bottom: 20, left: 56, color: 'rgba(255,255,255,0.35)', fontSize: 11 }}>
+        <div style={{ position: 'absolute', bottom: 20, left: 56, color: 'rgba(255,255,255,0.3)', fontSize: 11 }}>
           © {new Date().getFullYear()} 运维管理系统 · MIT License
         </div>
       </div>
@@ -180,12 +190,12 @@ export default function LoginPage() {
                 width: 56,
                 height: 56,
                 borderRadius: 16,
-                background: 'linear-gradient(135deg, #1677ff 0%, #4096ff 100%)',
+                background: 'linear-gradient(135deg, #fa8c16 0%, #ffa940 100%)',
                 display: 'inline-flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 marginBottom: 16,
-                boxShadow: '0 4px 12px rgba(22,119,255,0.3)',
+                boxShadow: '0 4px 12px rgba(250,140,22,0.3)',
               }}
             >
               <UserOutlined style={{ fontSize: 28, color: '#fff' }} />
@@ -205,9 +215,9 @@ export default function LoginPage() {
               rules={[{ required: true, message: '请输入用户名' }]}
             >
               <Input
-                prefix={<UserOutlined style={{ color: '#1677ff' }} />}
+                prefix={<UserOutlined style={{ color: '#fa8c16' }} />}
                 placeholder="用户名"
-                style={{ borderRadius: 10, height: 46, borderColor: '#d9d9d9' }}
+                style={{ borderRadius: 10, height: 46, borderColor: '#e8e8e8' }}
               />
             </Form.Item>
 
@@ -216,9 +226,9 @@ export default function LoginPage() {
               rules={[{ required: true, message: '请输入密码' }]}
             >
               <Input.Password
-                prefix={<LockOutlined style={{ color: '#1677ff' }} />}
+                prefix={<LockOutlined style={{ color: '#fa8c16' }} />}
                 placeholder="密码"
-                style={{ borderRadius: 10, height: 46, borderColor: '#d9d9d9' }}
+                style={{ borderRadius: 10, height: 46, borderColor: '#e8e8e8' }}
               />
             </Form.Item>
 
@@ -233,7 +243,9 @@ export default function LoginPage() {
                   borderRadius: 10,
                   fontSize: 15,
                   fontWeight: 600,
-                  boxShadow: '0 2px 8px rgba(22,119,255,0.25)',
+                  background: 'linear-gradient(135deg, #fa8c16 0%, #ffa940 100%)',
+                  border: 'none',
+                  boxShadow: '0 2px 8px rgba(250,140,22,0.3)',
                 }}
               >
                 登 录
@@ -244,7 +256,7 @@ export default function LoginPage() {
               block
               href="http://opsflow2.ops.com/#/workflow/createWorkFlow?workflow_id=217"
               target="_blank"
-              style={{ height: 40, borderRadius: 10, borderColor: '#d9d9d9', fontWeight: 500 }}
+              style={{ height: 40, borderRadius: 10, borderColor: '#e8e8e8', fontWeight: 500 }}
             >
               申请权限 <ArrowRightOutlined />
             </Button>
@@ -255,9 +267,9 @@ export default function LoginPage() {
             style={{
               marginTop: 24,
               padding: '12px 16px',
-              background: 'linear-gradient(135deg, #f0f5ff 0%, #e6f4ff 100%)',
+              background: 'linear-gradient(135deg, #fff7e6 0%, #fff2e8 100%)',
               borderRadius: 10,
-              border: '1px solid #bae0ff',
+              border: '1px solid #ffd591',
               display: 'flex',
               alignItems: 'center',
               gap: 8,
@@ -268,7 +280,7 @@ export default function LoginPage() {
                 width: 20,
                 height: 20,
                 borderRadius: '50%',
-                background: '#1677ff',
+                background: '#fa8c16',
                 color: '#fff',
                 display: 'flex',
                 alignItems: 'center',
@@ -279,7 +291,7 @@ export default function LoginPage() {
             >
               i
             </div>
-            <Text style={{ color: '#0958d9', fontSize: 12, lineHeight: 1.5 }}>
+            <Text style={{ color: '#ad6800', fontSize: 12, lineHeight: 1.5 }}>
               首次登录默认获得游客权限，请联系管理员分配角色
             </Text>
           </div>

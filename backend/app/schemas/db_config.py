@@ -1,12 +1,12 @@
-"""数据库连接信息 Pydantic 校验模型。"""
+﻿"""数据库连接信息 Pydantic 校验模型。"""
 from datetime import datetime
 from typing import Optional
 
 from pydantic import BaseModel, ConfigDict
 
 
-# ═══════════════ MySQL ═══════════════
 class MysqlInfoBase(BaseModel):
+    db_section: str = "default"
     default_db: int = 0
     db_addr: str
     db_port: int = 3306
@@ -20,6 +20,7 @@ class MysqlInfoCreate(MysqlInfoBase):
 
 
 class MysqlInfoUpdate(BaseModel):
+    db_section: Optional[str] = None
     default_db: Optional[int] = None
     db_addr: Optional[str] = None
     db_port: Optional[int] = None
@@ -35,8 +36,8 @@ class MysqlInfoOut(MysqlInfoBase):
     updated_at: Optional[datetime] = None
 
 
-# ═══════════════ Redis ═══════════════
 class RedisInfoBase(BaseModel):
+    db_section: str = "default"
     default_db: int = 0
     addr: str
     port: int = 6379
@@ -49,6 +50,7 @@ class RedisInfoCreate(RedisInfoBase):
 
 
 class RedisInfoUpdate(BaseModel):
+    db_section: Optional[str] = None
     default_db: Optional[int] = None
     addr: Optional[str] = None
     port: Optional[int] = None
@@ -63,8 +65,8 @@ class RedisInfoOut(RedisInfoBase):
     updated_at: Optional[datetime] = None
 
 
-# ═══════════════ MongoDB ═══════════════
 class MongoInfoBase(BaseModel):
+    db_section: str = "default"
     default_db: int = 0
     mongo_url: str
     db_name: str
@@ -75,6 +77,7 @@ class MongoInfoCreate(MongoInfoBase):
 
 
 class MongoInfoUpdate(BaseModel):
+    db_section: Optional[str] = None
     default_db: Optional[int] = None
     mongo_url: Optional[str] = None
     db_name: Optional[str] = None

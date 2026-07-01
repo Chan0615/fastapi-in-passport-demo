@@ -1,15 +1,12 @@
-"""数据库连接信息服务：从 mysql_info / redis_info / mongo_info 表读取连接配置。"""
-import logging
+﻿"""数据源配置服务。"""
+from __future__ import annotations
+
 from typing import List, Optional
 
 from sqlalchemy.orm import Session
 
-from app.models.db_config import MysqlInfo, RedisInfo, MongoInfo
+from app.models.db_config import MongoInfo, MysqlInfo, RedisInfo
 
-logger = logging.getLogger(__name__)
-
-
-# ═══════════════ MySQL ═══════════════
 
 def get_mysql_list(db: Session) -> List[MysqlInfo]:
     return db.query(MysqlInfo).all()
@@ -52,8 +49,6 @@ def delete_mysql(db: Session, pk: int) -> bool:
     return True
 
 
-# ═══════════════ Redis ═══════════════
-
 def get_redis_list(db: Session) -> List[RedisInfo]:
     return db.query(RedisInfo).all()
 
@@ -94,8 +89,6 @@ def delete_redis(db: Session, pk: int) -> bool:
     db.commit()
     return True
 
-
-# ═══════════════ MongoDB ═══════════════
 
 def get_mongo_list(db: Session) -> List[MongoInfo]:
     return db.query(MongoInfo).all()

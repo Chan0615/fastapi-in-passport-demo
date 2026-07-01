@@ -1,8 +1,8 @@
-import request from '../utils/request';
+﻿import request from '../utils/request';
 
-// ────── MySQL ──────
 export interface MysqlInfo {
   id: number;
+  db_section: string;
   default_db: number;
   db_addr: string;
   db_port: number;
@@ -13,9 +13,9 @@ export interface MysqlInfo {
   updated_at?: string;
 }
 
-// ────── Redis ──────
 export interface RedisInfo {
   id: number;
+  db_section: string;
   default_db: number;
   addr: string;
   port: number;
@@ -25,9 +25,9 @@ export interface RedisInfo {
   updated_at?: string;
 }
 
-// ────── MongoDB ──────
 export interface MongoInfo {
   id: number;
+  db_section: string;
   default_db: number;
   mongo_url: string;
   db_name: string;
@@ -36,7 +36,6 @@ export interface MongoInfo {
 }
 
 export const dbConfigApi = {
-  // MySQL
   listMysql: () => request.get<MysqlInfo[]>('/db-config/mysql'),
   getMysql: (id: number) => request.get<MysqlInfo>(`/db-config/mysql/${id}`),
   getDefaultMysql: () => request.get<MysqlInfo>('/db-config/mysql/default'),
@@ -46,7 +45,6 @@ export const dbConfigApi = {
     request.put<MysqlInfo>(`/db-config/mysql/${id}`, data),
   deleteMysql: (id: number) => request.delete(`/db-config/mysql/${id}`),
 
-  // Redis
   listRedis: () => request.get<RedisInfo[]>('/db-config/redis'),
   getRedis: (id: number) => request.get<RedisInfo>(`/db-config/redis/${id}`),
   getDefaultRedis: () => request.get<RedisInfo>('/db-config/redis/default'),
@@ -56,7 +54,6 @@ export const dbConfigApi = {
     request.put<RedisInfo>(`/db-config/redis/${id}`, data),
   deleteRedis: (id: number) => request.delete(`/db-config/redis/${id}`),
 
-  // MongoDB
   listMongo: () => request.get<MongoInfo[]>('/db-config/mongo'),
   getMongo: (id: number) => request.get<MongoInfo>(`/db-config/mongo/${id}`),
   getDefaultMongo: () => request.get<MongoInfo>('/db-config/mongo/default'),

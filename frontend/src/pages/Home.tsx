@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { Card, Row, Col, Statistic, Typography, Table, Tag, Space, Progress, Avatar } from 'antd';
+﻿import { useEffect, useState } from 'react';
+import { Card, Row, Col, Typography, Table, Tag, Space, Progress, Avatar } from 'antd';
 import {
   UserOutlined,
   TeamOutlined,
@@ -7,6 +7,7 @@ import {
   DatabaseOutlined,
   CheckCircleOutlined,
   ClockCircleOutlined,
+  SafetyOutlined,
 } from '@ant-design/icons';
 import { useAuth } from '../contexts/AuthContext';
 import { userApi, roleApi, menuApi, UserInfo, RoleInfo, MenuInfo } from '../services/adminApi';
@@ -27,10 +28,10 @@ export default function Home() {
     });
   }, []);
 
-  const activeUsers = users.filter(u => u.is_active).length;
-  const superUsers = users.filter(u => u.is_superuser).length;
-  const activeRoles = roles.filter(r => r.is_active).length;
-  const visibleMenus = menus.filter(m => m.is_visible).length;
+  const activeUsers = users.filter((u) => u.is_active).length;
+  const superUsers = users.filter((u) => u.is_superuser).length;
+  const activeRoles = roles.filter((r) => r.is_active).length;
+  const visibleMenus = menus.filter((m) => m.is_visible).length;
 
   const recentUsers = [...users]
     .sort((a, b) => (b.created_at || '').localeCompare(a.created_at || ''))
@@ -38,19 +39,34 @@ export default function Home() {
 
   const recentColumns = [
     {
-      title: '用户名', dataIndex: 'username', key: 'username',
+      title: '用户名',
+      dataIndex: 'username',
+      key: 'username',
       render: (v: string) => (
-        <Space><Avatar size="small" icon={<UserOutlined />} style={{ backgroundColor: '#1677ff' }} />{v}</Space>
+        <Space>
+          <Avatar size="small" icon={<UserOutlined />} style={{ backgroundColor: '#fa8c16' }} />
+          {v}
+        </Space>
       ),
     },
-    { title: '邮箱', dataIndex: 'email', key: 'email', render: (v: string | null) => v || '-' },
     {
-      title: '角色', dataIndex: 'roles', key: 'roles',
-      render: (roles: { name: string }[]) =>
-        roles.length ? roles.map(r => <Tag color="blue" key={r.name}>{r.name}</Tag>) : <Tag>游客</Tag>,
+      title: '邮箱',
+      dataIndex: 'email',
+      key: 'email',
+      render: (v: string | null) => v || '-',
     },
     {
-      title: '状态', dataIndex: 'is_active', key: 'is_active', width: 80,
+      title: '角色',
+      dataIndex: 'roles',
+      key: 'roles',
+      render: (roleItems: { name: string }[]) =>
+        roleItems.length ? roleItems.map((r) => <Tag color="orange" key={r.name}>{r.name}</Tag>) : <Tag>游客</Tag>,
+    },
+    {
+      title: '状态',
+      dataIndex: 'is_active',
+      key: 'is_active',
+      width: 80,
       render: (v: boolean) => <Tag color={v ? 'green' : 'red'}>{v ? '启用' : '禁用'}</Tag>,
     },
   ];
@@ -63,103 +79,169 @@ export default function Home() {
   else if (hour < 14) greeting = '中午好';
   else if (hour < 18) greeting = '下午好';
 
+  const statCards = [
+    {
+      title: '用户总数',
+      value: users.length,
+      icon: <UserOutlined />,
+      color: '#fa8c16',
+      bg: '#fff7e6',
+      sub: (
+        <>
+          <CheckCircleOutlined style={{ color: '#52c41a' }} /> 活跃 {activeUsers}
+          <span style={{ margin: '0 6px' }} />
+          <TeamOutlined style={{ color: '#faad14' }} /> 超管 {superUsers}
+        </>
+      ),
+    },
+    {
+      title: '角色总数',
+      value: roles.length,
+      icon: <TeamOutlined />,
+      color: '#52c41a',
+      bg: '#f6ffed',
+      sub: (
+        <>
+          <CheckCircleOutlined style={{ color: '#52c41a' }} /> 启用 {activeRoles}
+          <span style={{ margin: '0 6px' }} />
+          <ClockCircleOutlined style={{ color: '#8c8c8c' }} /> 禁用 {roles.length - activeRoles}
+        </>
+      ),
+    },
+    {
+      title: '菜单总数',
+      value: menus.length,
+      icon: <AppstoreOutlined />,
+      color: '#722ed1',
+      bg: '#f9f0ff',
+      sub: (
+        <>
+          <CheckCircleOutlined style={{ color: '#52c41a' }} /> 可见 {visibleMenus}
+          <span style={{ margin: '0 6px' }} />
+          <ClockCircleOutlined style={{ color: '#8c8c8c' }} /> 隐藏 {menus.length - visibleMenus}
+        </>
+      ),
+    },
+    {
+      title: '数据源连接',
+      value: 3,
+      icon: <DatabaseOutlined />,
+      color: '#13c2c2',
+      bg: '#e6fffb',
+      sub: 'MySQL / Redis / MongoDB',
+    },
+  ];
+
   return (
     <div>
-      {/* 欢迎卡片 */}
       <Card
-        style={{ marginBottom: 16, background: 'linear-gradient(135deg, #1677ff 0%, #0050b3 100%)', border: 'none' }}
-        styles={{ body: { padding: 24 } }}
+        style={{
+          marginBottom: 16,
+          background: 'linear-gradient(135deg, #1c1c1c 0%, #3d2817 40%, #8c4513 80%, #fa8c16 100%)',
+          border: 'none',
+          borderRadius: 12,
+          overflow: 'hidden',
+          position: 'relative',
+        }}
+        styles={{ body: { padding: 28 } }}
       >
-        <Row align="middle" justify="space-between">
+        <div
+          style={{
+            position: 'absolute',
+            width: 300,
+            height: 300,
+            borderRadius: '50%',
+            background: 'radial-gradient(circle, rgba(250,140,22,0.2) 0%, transparent 70%)',
+            top: -100,
+            right: -50,
+          }}
+        />
+        <Row align="middle" justify="space-between" style={{ position: 'relative', zIndex: 1 }}>
           <Col>
-            <Title level={3} style={{ color: '#fff', margin: '0 0 4px' }}>
-              {greeting}，{user?.username} 👋
-            </Title>
-            <Text style={{ color: 'rgba(255,255,255,0.8)' }}>
-              欢迎使用运维管理系统，祝您工作顺利！
+            <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 12 }}>
+              <div
+                style={{
+                  width: 48,
+                  height: 48,
+                  borderRadius: 12,
+                  background: 'linear-gradient(135deg, #fa8c16 0%, #ffa940 100%)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  boxShadow: '0 4px 12px rgba(250,140,22,0.4)',
+                }}
+              >
+                <SafetyOutlined style={{ fontSize: 24, color: '#fff' }} />
+              </div>
+              <Title level={3} style={{ color: '#fff', margin: 0 }}>
+                {greeting}，{user?.username}
+              </Title>
+            </div>
+            <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 14 }}>
+              欢迎使用运维管理系统，祝您工作顺利。
             </Text>
           </Col>
           <Col>
-            <Space size="large">
-              <div style={{ textAlign: 'center', color: '#fff' }}>
-                <ClockCircleOutlined style={{ fontSize: 24, marginBottom: 4 }} />
-                <div style={{ fontSize: 13 }}>
-                  {now.toLocaleDateString('zh-CN')}
-                </div>
+            <div
+              style={{
+                textAlign: 'center',
+                color: 'rgba(255,255,255,0.6)',
+                background: 'rgba(255,255,255,0.08)',
+                padding: '12px 20px',
+                borderRadius: 10,
+                border: '1px solid rgba(255,255,255,0.1)',
+              }}
+            >
+              <ClockCircleOutlined style={{ fontSize: 20, marginBottom: 4 }} />
+              <div style={{ fontSize: 13 }}>
+                {now.toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' })}
               </div>
-            </Space>
+            </div>
           </Col>
         </Row>
       </Card>
 
-      {/* 统计卡片 */}
       <Row gutter={16} style={{ marginBottom: 16 }}>
-        <Col span={6}>
-          <Card>
-            <Statistic
-              title="用户总数"
-              value={users.length}
-              prefix={<UserOutlined style={{ color: '#1677ff' }} />}
-            />
-            <div style={{ marginTop: 8 }}>
-              <Text type="secondary" style={{ fontSize: 12 }}>
-                <CheckCircleOutlined style={{ color: '#52c41a' }} /> 活跃 {activeUsers}　
-                <TeamOutlined style={{ color: '#faad14' }} /> 超管 {superUsers}
-              </Text>
-            </div>
-          </Card>
-        </Col>
-        <Col span={6}>
-          <Card>
-            <Statistic
-              title="角色总数"
-              value={roles.length}
-              prefix={<TeamOutlined style={{ color: '#52c41a' }} />}
-            />
-            <div style={{ marginTop: 8 }}>
-              <Text type="secondary" style={{ fontSize: 12 }}>
-                <CheckCircleOutlined style={{ color: '#52c41a' }} /> 启用 {activeRoles}　
-                <ClockCircleOutlined style={{ color: '#8c8c8c' }} /> 禁用 {roles.length - activeRoles}
-              </Text>
-            </div>
-          </Card>
-        </Col>
-        <Col span={6}>
-          <Card>
-            <Statistic
-              title="菜单总数"
-              value={menus.length}
-              prefix={<AppstoreOutlined style={{ color: '#722ed1' }} />}
-            />
-            <div style={{ marginTop: 8 }}>
-              <Text type="secondary" style={{ fontSize: 12 }}>
-                <CheckCircleOutlined style={{ color: '#52c41a' }} /> 可见 {visibleMenus}　
-                <ClockCircleOutlined style={{ color: '#8c8c8c' }} /> 隐藏 {menus.length - visibleMenus}
-              </Text>
-            </div>
-          </Card>
-        </Col>
-        <Col span={6}>
-          <Card>
-            <Statistic
-              title="数据源连接"
-              value={3}
-              prefix={<DatabaseOutlined style={{ color: '#13c2c2' }} />}
-            />
-            <div style={{ marginTop: 8 }}>
-              <Text type="secondary" style={{ fontSize: 12 }}>
-                MySQL / Redis / MongoDB
-              </Text>
-            </div>
-          </Card>
-        </Col>
+        {statCards.map((s, i) => (
+          <Col span={6} key={i}>
+            <Card
+              style={{ borderRadius: 12, border: 'none', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}
+              styles={{ body: { padding: 20 } }}
+            >
+              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 12 }}>
+                <div>
+                  <div style={{ color: '#8c8c8c', fontSize: 13, marginBottom: 4 }}>{s.title}</div>
+                  <div style={{ fontSize: 28, fontWeight: 700, color: '#1c1c1c' }}>{s.value}</div>
+                </div>
+                <div
+                  style={{
+                    width: 44,
+                    height: 44,
+                    borderRadius: 10,
+                    background: s.bg,
+                    color: s.color,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: 20,
+                  }}
+                >
+                  {s.icon}
+                </div>
+              </div>
+              <Text type="secondary" style={{ fontSize: 12 }}>{s.sub}</Text>
+            </Card>
+          </Col>
+        ))}
       </Row>
 
-      {/* 下方区域 */}
       <Row gutter={16}>
-        {/* 最近用户 */}
         <Col span={16}>
-          <Card title="最近注册用户" extra={<Text type="secondary">共 {users.length} 人</Text>}>
+          <Card
+            title={<span style={{ fontWeight: 600 }}>最近注册用户</span>}
+            extra={<Text type="secondary">共 {users.length} 人</Text>}
+            style={{ borderRadius: 12, border: 'none', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}
+          >
             <Table
               rowKey="id"
               dataSource={recentUsers}
@@ -170,31 +252,32 @@ export default function Home() {
           </Card>
         </Col>
 
-        {/* 角色分布 */}
         <Col span={8}>
-          <Card title="角色分布">
+          <Card
+            title={<span style={{ fontWeight: 600 }}>角色分布</span>}
+            style={{ borderRadius: 12, border: 'none', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}
+          >
             {roles.length === 0 ? (
               <Text type="secondary">暂无角色数据</Text>
             ) : (
               <Space direction="vertical" style={{ width: '100%' }} size="middle">
-                {roles.map(role => {
-                  const count = users.filter(u =>
-                    u.roles.some(r => r.id === role.id)
-                  ).length;
+                {roles.map((role) => {
+                  const count = users.filter((u) => u.roles.some((r) => r.id === role.id)).length;
                   const percent = users.length ? (count / users.length) * 100 : 0;
                   return (
                     <div key={role.id}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                        <Text>{role.name}</Text>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
+                        <Text style={{ fontWeight: 500 }}>{role.name}</Text>
                         <Text type="secondary">{count} 人</Text>
                       </div>
                       <Progress
                         percent={percent}
                         showInfo={false}
                         strokeColor={{
-                          '0%': '#1677ff',
-                          '100%': '#52c41a',
+                          '0%': '#fa8c16',
+                          '100%': '#ffa940',
                         }}
+                        trailColor="#fff0e6"
                       />
                     </div>
                   );

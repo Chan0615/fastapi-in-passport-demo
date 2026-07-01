@@ -1,12 +1,23 @@
-"""V1 API 路由聚合。"""
+﻿"""V1 API 路由聚合。"""
 from fastapi import APIRouter
 
-from app.api.v1.endpoints import config, db_config, auth, operation_log
-from app.admin.api import router as admin_router
+from app.api.v1.endpoints.kefu_attack_system.ddos_events import router as kefu_ddos_router
+from app.api.v1.endpoints.system.auth import router as auth_router
+from app.api.v1.endpoints.system.config import router as config_router
+from app.api.v1.endpoints.system.db_config import router as db_config_router
+from app.api.v1.endpoints.system.menu import router as menu_router
+from app.api.v1.endpoints.system.operation_log import router as operation_log_router
+from app.api.v1.endpoints.system.role import router as role_router
+from app.api.v1.endpoints.system.user import router as user_router
 
 api_router = APIRouter()
-api_router.include_router(auth.router, tags=["auth"])
-api_router.include_router(config.router, prefix="/config", tags=["config"])
-api_router.include_router(db_config.router, tags=["db-config"])
-api_router.include_router(admin_router, prefix="/admin", tags=["admin"])
-api_router.include_router(operation_log.router, tags=["操作日志"])
+api_router.include_router(auth_router)
+api_router.include_router(config_router)
+api_router.include_router(db_config_router)
+api_router.include_router(kefu_ddos_router)
+
+api_router.include_router(user_router, prefix="/admin")
+api_router.include_router(role_router, prefix="/admin")
+api_router.include_router(menu_router, prefix="/admin")
+
+api_router.include_router(operation_log_router)
