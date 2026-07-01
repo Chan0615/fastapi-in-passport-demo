@@ -109,6 +109,14 @@ class OperationLogMiddleware(BaseHTTPMiddleware):
             # 解析用户
             user_id, username = _get_user_from_request(request)
 
+            # 登录接口：从请求体提取用户名（登录时还没有 token）
+            if path == "/api/v1/auth/login" and not username and body:
+                try:
+                    body_data = json.loads(body)
+                    username = body_data.get("username", "")
+                except Exception:
+                    pass
+
             # 推断模块和操作
             module, action = _resolve_module_action(path, request.method)
 
