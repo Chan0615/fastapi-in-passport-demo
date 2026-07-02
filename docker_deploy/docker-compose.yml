@@ -5,6 +5,8 @@ services:
     restart: always
     environment:
       APP_ENV: prod
+    extra_hosts:
+      - "fastapi-passport.ops.com:10.225.138.183"
     volumes:
       - ../config/config.yaml:/app/config.yaml:ro
     expose:
