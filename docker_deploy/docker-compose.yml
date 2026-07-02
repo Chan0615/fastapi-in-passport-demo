@@ -5,6 +5,8 @@ services:
     restart: always
     environment:
       APP_ENV: prod
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     volumes:
       - ../config/config.yaml:/app/config.yaml:ro
     expose:
