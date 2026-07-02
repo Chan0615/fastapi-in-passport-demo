@@ -5,15 +5,12 @@ services:
     restart: always
     environment:
       APP_ENV: prod
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
     volumes:
       - ../config/config.yaml:/app/config.yaml:ro
     expose:
       - "8000"
     networks:
       - ops-net
-      - passport-net
 
   frontend:
     build:
@@ -28,11 +25,7 @@ services:
       - backend
     networks:
       - ops-net
-      - passport-net
 
 networks:
   ops-net:
     driver: bridge
-  passport-net:
-    external: true
-    name: fastapi_passport_ops-net
