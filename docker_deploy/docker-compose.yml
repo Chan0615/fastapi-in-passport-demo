@@ -13,6 +13,7 @@ services:
       - "8000"
     networks:
       - ops-net
+      - passport-net
 
   frontend:
     build:
@@ -27,7 +28,11 @@ services:
       - backend
     networks:
       - ops-net
+      - passport-net
 
 networks:
   ops-net:
     driver: bridge
+  passport-net:
+    external: true
+    name: fastapi_passport_ops-net
