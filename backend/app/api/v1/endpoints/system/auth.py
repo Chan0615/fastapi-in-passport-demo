@@ -1,25 +1,31 @@
-﻿"""认证接口。"""
+﻿"""认证接口。
+
+登录/登出/获取菜单/获取权限 均通过 Passport 认证中心完成。
+JWT 由 passport 签发，本系统使用共享 secret_key 本地验证。
+"""
 from __future__ import annotations
 
 import logging
-from typing import Optional
+from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Response, status
+from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from pydantic import BaseModel
-from sqlalchemy.orm import Session
 
-from app.admin.models import Role, User
-from app.common.database import get_db
 from app.common.deps import get_current_user
-from app.common.ldap_api import ldap_verify
+from app.common.passport_client import (
+    PROJECT_CODE,
+    passport_login,
+    passport_logout,
+    passport_menus,
+)
 from app.config import bootstrap_config
-from app.core.security import ACCESS_TOKEN_EXPIRE_MINUTES, create_access_token
-from app.services.system.menu_service import get_user_menus
-from app.services.system.user_service import get_user_by_username, get_user_permissions
+from app.core.security import ACCESS_TOKEN_EXPIRE_MINUTES
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/auth", tags=["auth"])
 
+
+# ────── 请求/响应模型 ──────
 
 class LoginRequest(BaseModel):
     username: str
@@ -31,8 +37,8 @@ class UserInfo(BaseModel):
     username: str
     email: Optional[str] = None
     is_superuser: bool = False
-    roles: list[str] = []
-    permissions: list[str] = []
+    roles: List[str] = []
+    permissions: List[str] = []
 
     class Config:
         from_attributes = True
@@ -44,52 +50,28 @@ class LoginResponse(BaseModel):
     user: UserInfo
 
 
+# ────── 接口 ──────
+
 @router.post("/login", response_model=LoginResponse)
-async def login(payload: LoginRequest, response: Response, db: Session = Depends(get_db)):
-    ldap_result = await ldap_verify(payload.username, payload.password)
-    if ldap_result is None:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="LDAP 服务不可用")
+async def login(payload: LoginRequest, response: Response):
+    """登录接口：转调 passport 认证中心。
 
-    if not ldap_result.get("success", False):
-        ldap_msg = ldap_result.get("msg") or "用户名或密码错误"
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=f"LDAP 认证失败: {ldap_msg}")
-
-    ldap_username = (
-        ldap_result.get("username", [None])[0]
-        if isinstance(ldap_result.get("username"), list)
-        else ldap_result.get("username", payload.username)
-    )
-    ldap_mail = (
-        ldap_result.get("mail", [None])[0]
-        if isinstance(ldap_result.get("mail"), list)
-        else ldap_result.get("mail")
-    )
-
-    user = get_user_by_username(db, ldap_username or payload.username)
-    if not user:
-        guest_role = db.query(Role).filter(Role.name == "guest").first()
-        user = User(
-            username=ldap_username or payload.username,
-            email=ldap_mail,
-            hashed_password="",
-            is_active=True,
-            is_superuser=False,
+    passport 验证 LDAP 身份 → 签发 JWT → 返回 token + 用户 + 菜单 + 权限。
+    本接口设置本地 Cookie 实现 SSO。
+    """
+    data = await passport_login(payload.username, payload.password)
+    if data is None or data.get("detail"):
+        msg = (data or {}).get("detail", "登录失败")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail=msg
         )
-        if guest_role:
-            user.roles.append(guest_role)
-        db.add(user)
-        db.commit()
-        db.refresh(user)
-        logger.info("LDAP 新用户自动创建: %s", user.username)
-    else:
-        if ldap_mail and user.email != ldap_mail:
-            user.email = ldap_mail
-        if ldap_username and user.username != ldap_username:
-            user.username = ldap_username
-        db.commit()
-        db.refresh(user)
 
-    access_token = create_access_token(user.id, user.username)
+    access_token = data["access_token"]
+    passport_user = data.get("user", {})
+    passport_menus_data = data.get("menus", [])
+    passport_permissions = data.get("permissions", [])
+
+    # 设置本地 Cookie（与 passport 共享 .ops.com 域，实现 SSO）
     response.set_cookie(
         key="access_token",
         value=access_token,
@@ -103,34 +85,68 @@ async def login(payload: LoginRequest, response: Response, db: Session = Depends
     return LoginResponse(
         access_token=access_token,
         user=UserInfo(
-            id=user.id,
-            username=user.username,
-            email=user.email,
-            is_superuser=user.is_superuser,
-            roles=[r.name for r in user.roles],
-            permissions=get_user_permissions(user),
+            id=passport_user.get("id", 0),
+            username=passport_user.get("username", ""),
+            email=passport_user.get("email"),
+            is_superuser=passport_user.get("is_superuser", False),
+            roles=data.get("roles", []),
+            permissions=passport_permissions,
         ),
     )
 
 
 @router.get("/me", response_model=UserInfo)
-def get_me(current_user: User = Depends(get_current_user)):
+async def get_me(request: Request):
+    """获取当前用户信息（从 passport 获取 is_superuser 和权限）。"""
+    token = None
+    auth = request.headers.get("Authorization", "")
+    if auth.startswith("Bearer "):
+        token = auth[7:]
+    if not token:
+        token = request.cookies.get("access_token", "")
+
+    if not token:
+        raise HTTPException(status_code=401, detail="未登录")
+
+    from app.common.passport_client import passport_me, passport_user_permissions
+
+    user_data = await passport_me(token)
+    perms = await passport_user_permissions(token)
+
+    if not user_data:
+        raise HTTPException(status_code=401, detail="令牌无效")
+
     return UserInfo(
-        id=current_user.id,
-        username=current_user.username,
-        email=current_user.email,
-        is_superuser=current_user.is_superuser,
-        roles=[r.name for r in current_user.roles],
-        permissions=get_user_permissions(current_user),
+        id=user_data.get("id", 0),
+        username=user_data.get("username", ""),
+        email=user_data.get("email"),
+        is_superuser=user_data.get("is_superuser", False),
+        permissions=perms,
     )
 
 
 @router.get("/menus")
-def get_my_menus(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
-    return get_user_menus(db, current_user)
+async def get_my_menus(
+    request: Request,
+    _user: Dict[str, Any] = Depends(get_current_user),
+):
+    """获取当前用户在 fastapi-ant-demo 项目下的菜单树（来自 passport）。"""
+    token = None
+    auth = request.headers.get("Authorization", "")
+    if auth.startswith("Bearer "):
+        token = auth[7:]
+    if not token:
+        token = request.cookies.get("access_token")
+    if not token:
+        return []
+
+    menus = await passport_menus(token)
+    return menus
 
 
 @router.post("/logout")
-def logout(response: Response):
+async def logout(response: Response):
+    """退出登录：清除本地 Cookie 并通知 passport。"""
     response.delete_cookie(key="access_token", domain=bootstrap_config.security.cookie_domain)
+    await passport_logout()
     return {"msg": "已退出登录"}

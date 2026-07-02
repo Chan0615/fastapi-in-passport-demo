@@ -8,15 +8,12 @@ from app.config import bootstrap_config
 from app.common.database import engine, Base
 from app.common.log_middleware import OperationLogMiddleware
 from app.api.v1.api import api_router
-from app.first_init_sql import seed_initial_data
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # 启动时建表
+    # 启动时自动建表（仅业务表，用户/角色/菜单已迁移至 passport）
     Base.metadata.create_all(bind=engine)
-    # 首次启动插入种子数据
-    seed_initial_data()
     yield
 
 

@@ -1,10 +1,11 @@
 ﻿"""操作日志查询接口。"""
 from __future__ import annotations
 
+from typing import Any, Dict
+
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
-from app.admin.models import User
 from app.common.database import get_db
 from app.common.deps import get_current_user
 from app.models.operation_log import OperationLog
@@ -19,9 +20,8 @@ def list_logs(
     module: str = Query(""),
     username: str = Query(""),
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    _current_user: Dict[str, Any] = Depends(get_current_user),
 ):
-    _ = current_user
     query = db.query(OperationLog)
     if module:
         query = query.filter(OperationLog.module == module)

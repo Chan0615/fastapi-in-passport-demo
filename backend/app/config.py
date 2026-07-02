@@ -64,6 +64,7 @@ class BootstrapConfig(BaseModel):
     """启动引导配置：包含所有 config.yaml 中的配置项。"""
     app_env: str = "dev"
     database_url: str = ""
+    passport_url: str = "http://localhost:8888"
     system_root: SystemRootConfig = SystemRootConfig()
     app: AppConfig = AppConfig()
     security: SecurityConfig = SecurityConfig()
@@ -91,6 +92,7 @@ def load_bootstrap_config(path: Path = CONFIG_PATH) -> BootstrapConfig:
     env_database_url = os.getenv("DATABASE_URL")
 
     # 默认值
+    passport_url = os.getenv("PASSPORT_URL", "http://localhost:8888")
     system_root = SystemRootConfig()
     app_cfg = AppConfig()
     security_cfg = SecurityConfig()
@@ -100,6 +102,10 @@ def load_bootstrap_config(path: Path = CONFIG_PATH) -> BootstrapConfig:
     if path.exists():
         with open(path, "r", encoding="utf-8") as f:
             data = yaml.safe_load(f) or {}
+
+        # 读取 passport_url（优先环境变量，其次配置文件）
+        if not os.getenv("PASSPORT_URL"):
+            passport_url = data.get("passport_url", passport_url)
 
         # 解析 system_root
         root_data = data.get("system_root", {})
@@ -138,6 +144,7 @@ def load_bootstrap_config(path: Path = CONFIG_PATH) -> BootstrapConfig:
     return BootstrapConfig(
         app_env=env_app_env or "dev",
         database_url=database_url,
+        passport_url=passport_url,
         system_root=system_root,
         app=app_cfg,
         security=security_cfg,
